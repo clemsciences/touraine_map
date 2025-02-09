@@ -8,6 +8,7 @@ import {BootstrapVueNextResolver} from "bootstrap-vue-next";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/touraine_map/",
   plugins: [
     vue(),
     vueDevTools(),
