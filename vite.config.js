@@ -16,6 +16,7 @@ export default defineConfig({
         resolvers: [BootstrapVueNextResolver()],
       })
   ],
+  assetsInclude: ["**/*.geojson"],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
