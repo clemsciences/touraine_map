@@ -9,8 +9,6 @@
                  style="height: 1000px; width: 100%"
                  v-model:zoom="zoom"
                  :center="center"
-                 :bounds="bounds"
-                 :max-bounds="bounds"
                  :options="mapOptions"
                  :use-global-leaflet="false"
           >
@@ -22,7 +20,7 @@
             <l-control-layers />
             <l-feature-group>
             <div v-for="event in locations" :key="event.id">
-              <l-marker :ref="`marker-${event.id}`" :lat-lng="[event.coordinates.lat, event.coordinates.lng]">
+              <l-marker :lat-lng="[event.coordinates.lat, event.coordinates.lng]">
                 <l-tooltip :options="{ permanent: true, direction: 'top', offset: [-15, 0] , opacity: 0.7 }">
                   <b style="font-size: 1.2em">{{event.name}}</b>
                 </l-tooltip>
@@ -35,7 +33,7 @@
       </div>
       <div class="list-container">
         <ul>
-          <li v-for="event in locations" :key="event.coordinates">
+          <li v-for="event in locations" :key="event.id">
             <b>{{event.name}}</b><br/>
             <span>{{event.description}}</span>
             <!--<span><a :href="event.wikidataUrl">{{event.wikidataUrl}}</a></span>-->
@@ -46,94 +44,51 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import "leaflet/dist/leaflet.css";
+import {computed, nextTick, onMounted, ref} from "vue";
 import {
   LControlLayers,
   LFeatureGroup,
   LGeoJson,
   LMap,
   LMarker,
-  LPopup,
   LTileLayer,
   LTooltip,
 } from "@vue-leaflet/vue-leaflet";
-import {coordsToLatLng} from "leaflet/src/layer/GeoJSON.js";
-import {latLngBounds, featureGroup} from "leaflet/dist/leaflet-src.esm.js";
 import {touraineLocations} from "@/data.js";
 
-export default {
-  name: "TouraineMap",
-  methods: {
-    coordsToLatLng,
-    // showAllTooltips() {
-    //   this.locations.forEach((event) => {
-    //     const marker = this.$refs['marker-' + event.id][0];
-    //     console.log(marker);
-    //     if (marker) {
-    //       marker.openPopup();
-    //     }
-    //   });
-    // },
-    printPage() {
-      window.print();
-    },
-    onReady() {
-      if(this.markers) {
-        this.$nextTick(() => {
-          this.$refs.map.leafletObject.fitBounds(this.markers);
-        });
-      }
-    }
-  },
-  components: {
-    LFeatureGroup,
-    LGeoJson,
-    LPopup,
-    LTooltip,
-    LMarker,
-    LControlLayers,
-    LMap,
-    LTileLayer,
-  },
-  data() {
-    /*const bounds = latLngBounds([
-      [47.7, 0.050],
-      [46.800, 1.400]
-    ]);*/
-
-    return {
-      zoom: 9,
-      center: [47.397332, 0.695097],
-      locations: touraineLocations,
-      //bounds: bounds,
-      //maxBounds: bounds,
-      department: null,
-      departmentOptions: null,
-      mapOptions: {
-        zoomSnap: 0.5,
-        zoomDelta: 0.5,
-        zoomControl: false,
-        attributionControl: false
-      },
-    };
-  },
-  mounted() {
-
-    fetch('departement-37-indre-et-loire.geojson')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        this.department = data;
-        // this.showAllTooltips();
-      });
-  },
-  computed: {
-    markers() {
-      return this.locations.map((value) => value.coordinates);
-    }
-  }
+const map = ref(null);
+const zoom = ref(9);
+const center = [47.397332, 0.695097];
+const locations = touraineLocations;
+const department = ref(null);
+const mapOptions = {
+  zoomSnap: 0.5,
+  zoomDelta: 0.5,
+  zoomControl: false,
+  attributionControl: false
 };
+
+const markers = computed(() => locations.map((value) => value.coordinates));
+
+function printPage() {
+  window.print();
+}
+
+function onReady() {
+  nextTick(() => {
+    map.value.leafletObject.fitBounds(markers.value);
+  });
+}
+
+onMounted(() => {
+  fetch('departement-37-indre-et-loire.geojson')
+    .then(response => response.json())
+    .then(data => {
+      department.value = data;
+    });
+});
 </script>
 
 <style scoped>
