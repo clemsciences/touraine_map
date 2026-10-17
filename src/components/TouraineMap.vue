@@ -1,5 +1,5 @@
 <template>
-  <div class="widget">
+  <div class="widget" :class="{ 'print-layout': isPrinting }">
     <div class="map-list-container">
       <div class="map-container" ref="mapContainer">
         <l-map ref="map"
@@ -11,6 +11,7 @@
                :use-global-leaflet="false"
         >
           <l-tile-layer
+            ref="tileLayer"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             layer-type="base"
             name="OpenStreetMap"
@@ -31,7 +32,7 @@
               </l-tooltip>
             </l-marker>
           </l-feature-group>
-          <l-geo-json v-if="department" :geojson="department"/>
+          <l-geo-json v-if="department" ref="departmentLayer" :geojson="department" @ready="onDepartmentReady"/>
         </l-map>
       </div>
       <div class="list-container">
@@ -73,6 +74,8 @@ import {
 import {touraineLocations} from "@/data.js";
 
 const map = ref(null);
+const tileLayer = ref(null);
+const departmentLayer = ref(null);
 const mapContainer = ref(null);
 const markerRefs = {};
 const itemRefs = {};
@@ -82,7 +85,7 @@ const locations = touraineLocations;
 const department = ref(null);
 const selectedId = ref(null);
 const mapOptions = {
-  zoomSnap: 0.5,
+  zoomSnap: 0.1, // Permet à fitBounds de cadrer au plus juste
   zoomDelta: 0.5,
 };
 
@@ -95,9 +98,16 @@ const permanentTooltips = computed(() => isWide.value || isPrinting.value);
 
 const markers = computed(() => locations.map((value) => value.coordinates));
 
-function fitAll() {
+// Cadre tout le département (une fois son contour chargé) et tous les lieux
+function fitAll(animate = true) {
+  let bounds = markers.value;
+  const outline = departmentLayer.value?.leafletObject;
+  if (outline) {
+    bounds = outline.getBounds();
+    markers.value.forEach((coordinates) => bounds.extend(coordinates));
+  }
   // Marge haute plus grande pour laisser la place aux infobulles au-dessus des épingles
-  map.value?.leafletObject?.fitBounds(markers.value, {paddingTopLeft: [30, 80], paddingBottomRight: [30, 30]});
+  map.value?.leafletObject?.fitBounds(bounds, {paddingTopLeft: [10, 50], paddingBottomRight: [10, 10], animate});
 }
 
 function select(event, fromList) {
@@ -118,34 +128,97 @@ function showAll() {
   fitAll();
 }
 
-function printPage() {
+// Vue affichée avant l'impression, restaurée ensuite
+let viewBeforePrint = null;
+
+// La carte imprimée n'a pas la taille de la carte à l'écran : on la redimensionne au format
+// papier (classe print-layout), on la recadre sur tous les lieux, puis on attend les tuiles.
+function prepareForPrint() {
+  const leafletMap = map.value.leafletObject;
+  viewBeforePrint = {center: leafletMap.getCenter(), zoom: leafletMap.getZoom()};
+  isPrinting.value = true;
+  return nextTick().then(() => {
+    leafletMap.invalidateSize({animate: false});
+    fitAll(false);
+  });
+}
+
+function tilesLoaded(timeout = 5000) {
+  const tiles = tileLayer.value.leafletObject;
+  return new Promise((resolve) => {
+    // On laisse une image à Leaflet pour lancer le chargement des nouvelles tuiles
+    requestAnimationFrame(() => {
+      if (!tiles.isLoading()) {
+        resolve();
+        return;
+      }
+      const timer = setTimeout(resolve, timeout);
+      tiles.once("load", () => {
+        clearTimeout(timer);
+        resolve();
+      });
+    });
+  });
+}
+
+async function printPage() {
+  await prepareForPrint();
+  await tilesLoaded();
   window.print();
+}
+
+// Ctrl+P passe par la même préparation que le bouton, pour attendre le chargement des tuiles
+function onKeydown(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+    e.preventDefault();
+    printPage();
+  }
 }
 
 function onReady() {
   nextTick(fitAll);
 }
 
+function onDepartmentReady() {
+  if (selectedId.value === null) {
+    nextTick(fitAll);
+  }
+}
+
 function onScreenChange(e) {
   isWide.value = e.matches;
+  if (isPrinting.value) {
+    return; // La largeur de la page imprimée déclenche aussi ce changement
+  }
   nextTick(() => {
     map.value?.leafletObject?.invalidateSize();
     fitAll();
   });
 }
 
+// Impression lancée depuis le menu du navigateur : on recadre au mieux, sans pouvoir attendre les tuiles
 function onBeforePrint() {
-  isPrinting.value = true;
+  if (!isPrinting.value) {
+    prepareForPrint();
+  }
 }
 
 function onAfterPrint() {
   isPrinting.value = false;
+  nextTick(() => {
+    const leafletMap = map.value.leafletObject;
+    leafletMap.invalidateSize({animate: false});
+    if (viewBeforePrint) {
+      leafletMap.setView(viewBeforePrint.center, viewBeforePrint.zoom, {animate: false});
+    }
+  });
 }
 
 onMounted(() => {
   wideScreen.addEventListener("change", onScreenChange);
   window.addEventListener("beforeprint", onBeforePrint);
   window.addEventListener("afterprint", onAfterPrint);
+  window.addEventListener("keydown", onKeydown);
 
   fetch('departement-37-indre-et-loire.geojson')
     .then(response => response.json())
@@ -158,6 +231,7 @@ onBeforeUnmount(() => {
   wideScreen.removeEventListener("change", onScreenChange);
   window.removeEventListener("beforeprint", onBeforePrint);
   window.removeEventListener("afterprint", onAfterPrint);
+  window.removeEventListener("keydown", onKeydown);
 });
 </script>
 
@@ -251,6 +325,19 @@ li {
   color: var(--color-heading);
 }
 
+/* Format papier, appliqué juste avant l'impression et pendant celle-ci,
+   pour que Leaflet cadre la carte sur la taille réellement imprimée */
+.print-layout .map-list-container {
+  flex-direction: column;
+  align-items: center;
+}
+
+.print-layout .map-container {
+  flex: none;
+  width: 180mm;
+  height: 210mm;
+}
+
 /* Petits écrans : la carte en haut, la liste en dessous */
 @media (max-width: 767.98px) {
   .widget {
@@ -288,17 +375,17 @@ li {
     flex-direction: column; /* Affiche la carte et la liste en colonne */
   }
 
-  .map-container, .list-container {
-    flex: none; /* Désactive la flexibilité */
-    width: 100%; /* Occupe toute la largeur */
-    border: none;
-  }
-
   .map-container {
-    height: 800px; /* Hauteur fixe pour la carte */
+    flex: none;
+    width: 180mm;
+    height: 210mm;
+    margin: 0 auto;
   }
 
   .list-container {
+    flex: none; /* Désactive la flexibilité */
+    width: 100%; /* Occupe toute la largeur */
+    border: none;
     overflow: visible;
     padding: 20px;
   }
