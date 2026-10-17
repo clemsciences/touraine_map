@@ -24,7 +24,9 @@ There are no tests, linter or formatter configured.
 - Responsive layout: map and list side by side from 768px, stacked below that. Tooltips are permanent on wide screens and when printing (`beforeprint`/`afterprint`), and appear on tap on small screens. The tooltip `:key` includes that state so it is recreated when it changes.
 - Do not put anything but `l-tooltip`/`l-popup` inside `l-marker`, HTML comments included: vue-leaflet then renders the marker as an empty `DivIcon` instead of the pin image.
 - The department outline `public/departement-37-indre-et-loire.geojson` is loaded at runtime with `fetch` on a relative path (source: data.gouv.fr, see README), so it relies on the app being served under the configured base path.
-- Printing: the "Imprimer" button calls `window.print()`. The `@media print` rules in `TouraineMap.vue` stack the map and list vertically and hide the buttons and zoom controls. Check layout changes in print preview and at phone width as well as on a desktop screen.
+- Printing: Leaflet keeps the view computed for the on-screen map size, so `printPage()` (the "Imprimer" button, and Ctrl+P which is intercepted) first switches the map to paper size with the `print-layout` class (180mm × 210mm, same as in `@media print`), refits without animation, waits for the tiles to load, then calls `window.print()`. `afterprint` restores the previous view. Printing from the browser menu only gets a best-effort refit in `beforeprint`, with no time for the tiles to load.
+- `fitAll()` fits the department outline plus all markers, so the whole of Touraine is shown, not only the area around the markers.
+- Check layout changes in print (export an A4 PDF after loading the page at screen size, not with print media emulated from the start) and at phone width as well as on a desktop screen.
 - Bootstrap-Vue-Next components (such as `b-button`) are auto-imported by `unplugin-vue-components` with `BootstrapVueNextResolver` (see `vite.config.js`), so they are not imported explicitly.
 
 ## Config notes
