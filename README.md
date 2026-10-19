@@ -28,6 +28,30 @@ npm run dev
 npm run build
 ```
 
+## Docker
+
+Le `Dockerfile` compile le site avec Node, puis le sert avec nginx (configuration dans `docker/nginx.conf`).
+
+Construire l'image :
+
+```sh
+docker build -t touraine_map .
+```
+
+Lancer le conteneur :
+
+```sh
+docker run --rm -p 8080:80 touraine_map
+```
+
+Le site est alors disponible sur http://localhost:8080/, qui redirige vers http://localhost:8080/touraine_map/. Le chemin `/touraine_map/` vient de l'option `base` de `vite.config.js` : si on la change, il faut aussi adapter le `Dockerfile` et `docker/nginx.conf`.
+
+Pour le lancer en arrière-plan et le redémarrer automatiquement :
+
+```sh
+docker run -d --name touraine_map --restart unless-stopped -p 8080:80 touraine_map
+```
+
 
 ## Les données
 
