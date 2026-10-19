@@ -17,6 +17,8 @@ npm run preview   # serve the built dist/
 
 There are no tests, linter or formatter configured.
 
+Docker: `docker build -t touraine_map . && docker run --rm -p 8080:80 touraine_map`, then open http://localhost:8080/ (redirects to `/touraine_map/`). The `Dockerfile` builds with Node and serves `dist/` with nginx (`docker/nginx.conf`) under the `/touraine_map/` base path.
+
 ## Architecture
 
 - `src/data.js` holds the content: the `touraineLocations` array of `LocatedEvent` instances (class in `src/models/types.js`: name, id, `{lat, lng}` coordinates, description, year, Wikidata URL). Adding or editing a place means editing this array. Each `id` must be unique, since it is used as the marker `key`/ref. Commented-out entries are deliberately disabled places.
