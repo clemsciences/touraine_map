@@ -52,6 +52,75 @@ Pour le lancer en arrière-plan et le redémarrer automatiquement :
 docker run -d --name touraine_map --restart unless-stopped -p 8080:80 touraine_map
 ```
 
+Pour afficher d'autres données sans reconstruire l'image, monter son propre fichier `data.yaml` (voir ci-dessous), et son fichier de contour s'il en a un :
+
+```sh
+docker run --rm -p 8080:80 \
+  -v "$PWD/mes-donnees.yaml:/usr/share/nginx/html/touraine_map/data.yaml:ro" \
+  -v "$PWD/mon-contour.geojson:/usr/share/nginx/html/touraine_map/mon-contour.geojson:ro" \
+  touraine_map
+```
+
+## Le fichier de données `data.yaml`
+
+Les lieux affichés sur la carte ne sont pas écrits dans le code : ils sont lus au chargement de la page dans le fichier `public/data.yaml`. Pour présenter d'autres lieux, il suffit de modifier ou de remplacer ce fichier :
+
+- en développement (`npm run dev`), modifier `public/data.yaml` puis recharger la page ;
+- après `npm run build`, le fichier est copié dans `dist/data.yaml`, qu'on peut modifier directement sur le serveur sans recompiler ;
+- avec Docker, monter son fichier comme indiqué ci-dessus.
+
+### Exemple
+
+```yaml
+title: Expo SAT
+outline: departement-37-indre-et-loire.geojson
+
+locations:
+  - id: "1"
+    name: L'Île-Bouchard
+    coordinates: {lat: 47.124, lng: 0.4273}
+    description: Apparition de la Vierge Marie
+    year: 1947
+    wikidataUrl: https://www.wikidata.org/wiki/Q3581712
+
+  - id: "2"
+    name: Chambray-lès-Tours
+    coordinates: {lat: 47.33879, lng: 0.71419}
+    description: "Eglise Saint Symphorien : statue de sainte Apolline"
+    year: 1200
+```
+
+### Format
+
+À la racine du fichier :
+
+| Clé | Obligatoire | Description |
+|---|---|---|
+| `title` | non | Titre de l'onglet du navigateur. |
+| `outline` | non | Fichier GeoJSON du contour de la zone, relatif à `data.yaml` (ou URL complète). Sans cette clé, aucun contour n'est dessiné. Le fichier doit être servi avec le site, par exemple placé dans `public/`. |
+| `locations` | oui | Liste des lieux, dans l'ordre d'affichage de la liste. Au moins un lieu. |
+
+Pour chaque lieu de `locations` :
+
+| Clé | Obligatoire | Description |
+|---|---|---|
+| `id` | oui | Identifiant unique du lieu (texte ou nombre). |
+| `name` | oui | Nom affiché sur la carte et dans la liste. |
+| `coordinates` | oui | Position du lieu : `{lat: 47.39, lng: 0.68}`, en degrés décimaux. Utiliser un point, pas une virgule. |
+| `description` | non | Texte affiché sous le nom dans la liste. |
+| `year` | non | Année associée au lieu (nombre entier). |
+| `wikidataUrl` | non | Lien vers la page Wikidata du lieu. |
+
+Toute autre clé est refusée, pour repérer les fautes de frappe (`descripton` par exemple).
+
+### Pièges du YAML
+
+- Une valeur qui contient « `: ` » (deux-points suivi d'une espace) doit être mise entre guillemets : `description: "Fontaine Sainte-Marie : eau miraculeuse"`.
+- Pour retirer temporairement un lieu, commenter ses lignes avec `#`.
+- L'indentation compte : utiliser des espaces, pas des tabulations.
+
+Si le fichier est absent ou invalide, la page affiche un message d'erreur qui indique le lieu et la clé en cause, à la place de la carte.
+
 
 ## Les données
 
