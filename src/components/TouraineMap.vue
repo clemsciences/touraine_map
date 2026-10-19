@@ -37,7 +37,7 @@
       </div>
       <div class="list-container">
         <div class="list-header">
-          <h2>{{locations.length}} lieux</h2>
+          <h2>{{locations.length}} {{locations.length > 1 ? "lieux" : "lieu"}}</h2>
           <div class="list-actions">
             <b-button size="sm" variant="outline-secondary" @click="showAll">Tout afficher</b-button>
             <b-button class="print-button" size="sm" variant="outline-secondary" @click="printPage">Imprimer</b-button>
@@ -71,7 +71,13 @@ import {
   LTileLayer,
   LTooltip,
 } from "@vue-leaflet/vue-leaflet";
-import {touraineLocations} from "@/data.js";
+
+const props = defineProps({
+  // Lieux à afficher (LocatedEvent[]), lus dans le fichier de données
+  locations: {type: Array, required: true},
+  // URL du contour GeoJSON de la zone, ou chaîne vide pour ne pas en afficher
+  outline: {type: String, default: ""},
+});
 
 const map = ref(null);
 const tileLayer = ref(null);
@@ -81,7 +87,7 @@ const markerRefs = {};
 const itemRefs = {};
 const zoom = ref(9);
 const center = [47.397332, 0.695097];
-const locations = touraineLocations;
+const locations = computed(() => props.locations);
 const department = ref(null);
 const selectedId = ref(null);
 const mapOptions = {
@@ -96,7 +102,7 @@ const isWide = ref(wideScreen.matches);
 const isPrinting = ref(false);
 const permanentTooltips = computed(() => isWide.value || isPrinting.value);
 
-const markers = computed(() => locations.map((value) => value.coordinates));
+const markers = computed(() => locations.value.map((value) => value.coordinates));
 
 // Cadre tout le département (une fois son contour chargé) et tous les lieux
 function fitAll(animate = true) {
@@ -106,8 +112,9 @@ function fitAll(animate = true) {
     bounds = outline.getBounds();
     markers.value.forEach((coordinates) => bounds.extend(coordinates));
   }
-  // Marge haute plus grande pour laisser la place aux infobulles au-dessus des épingles
-  map.value?.leafletObject?.fitBounds(bounds, {paddingTopLeft: [10, 50], paddingBottomRight: [10, 10], animate});
+  // Marge haute plus grande pour laisser la place aux infobulles au-dessus des épingles,
+  // et zoom plafonné quand les lieux sont très proches les uns des autres
+  map.value?.leafletObject?.fitBounds(bounds, {paddingTopLeft: [10, 50], paddingBottomRight: [10, 10], maxZoom: 14, animate});
 }
 
 function select(event, fromList) {
@@ -220,11 +227,14 @@ onMounted(() => {
   window.addEventListener("afterprint", onAfterPrint);
   window.addEventListener("keydown", onKeydown);
 
-  fetch('departement-37-indre-et-loire.geojson')
-    .then(response => response.json())
-    .then(data => {
-      department.value = data;
-    });
+  if (props.outline) {
+    fetch(props.outline)
+      .then(response => response.json())
+      .then(data => {
+        department.value = data;
+      })
+      .catch((error) => console.error(`Contour ${props.outline} illisible`, error));
+  }
 });
 
 onBeforeUnmount(() => {

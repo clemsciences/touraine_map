@@ -1,0 +1,103 @@
+# Données affichées par la carte. Le format est décrit dans le README.
+
+# Titre de l'onglet du navigateur (facultatif)
+title: Expo SAT
+
+# Contour de la zone, au format GeoJSON, relatif à ce fichier (facultatif)
+outline: departement-37-indre-et-loire.geojson
+
+locations:
+  - id: "1"
+    name: L'Île-Bouchard
+    coordinates: {lat: 47.124, lng: 0.4273}
+    description: Apparition de la Vierge Marie
+    year: 1947
+    wikidataUrl: https://www.wikidata.org/wiki/Q3581712
+
+  - id: "2"
+    name: Chambray-lès-Tours
+    coordinates: {lat: 47.33879, lng: 0.71419}
+    description: "Eglise Saint Symphorien : statue de sainte Apolline qui passait pour guérir les rages de dents"
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q41765169
+
+  - id: "3"
+    name: Pont-de-Ruan
+    coordinates: {lat: 47.260556, lng: 0.575556}
+    description: "Oratoire de Sainte Apolline : statue de sainte Apolline qui passait pour guérir les rages de dents"
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q1172033
+
+  - id: "4"
+    name: Avon-les-Roches
+    coordinates: {lat: 47.1622200, lng: 0.4498147}
+    description: "Fontaine Sainte-Marie : eau miraculeuse qui passait pour guérir les problèmes oculaires"
+    year: 1850
+    wikidataUrl: https://www.wikidata.org/wiki/Q1069583
+
+  - id: "5"
+    name: Bueil-en-Touraine
+    coordinates: {lat: 47.6449, lng: 0.5508}
+    description: "Collégiale Saint-Pierre, Saint-Michel et Saints-Innocents : gisant de Martine Turpin"
+    year: 1500
+    wikidataUrl: https://www.wikidata.org/wiki/Q2983997
+
+  - id: "6"
+    name: Azay-sur-Cher
+    coordinates: {lat: 47.3188, lng: 0.8443}
+    description: "Prieuré Saint-Jean-du-Grais : puits qui porte bonheur"
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q22941171
+
+  - id: "7"
+    name: Descartes
+    coordinates: {lat: 47.01845, lng: 0.67437}
+    description: Dolmen du Chillou du Feuillet
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q22941734
+
+  - id: "8"
+    name: Ferrière-Larçon
+    coordinates: {lat: 46.9928, lng: 0.882591}
+    description: Église Saint-Mandé-Saint-Jean
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q3582500
+
+  - id: "9"
+    name: Château-Renault
+    coordinates: {lat: 47.5918, lng: 0.9133}
+    description: "Eglise Saint-André : croix de Vauchevrier"
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q22941450
+
+  # - id: "10"
+  #   name: Château-Renault
+  #   coordinates: {lat: 47.5918, lng: 0.9133}
+  #   description: ""
+  #   year: 1200
+  #   wikidataUrl: https://www.wikidata.org/wiki/Q22941450
+
+  - id: "11"
+    name: Saint-Antoine-du-Rocher
+    coordinates: {lat: 47.4960355, lng: 0.6315859}
+    description: Gisant de saint Antoine et fontaine miraculeuse
+    year: 1200
+
+  - id: "12"
+    name: Azay-sur-Cher
+    coordinates: {lat: 47.3511884, lng: 0.8497533}
+    description: Fontaine et lavoir Sainte-Aoustrille
+    year: 1200
+
+  # - id: "13"
+  #   name: Azay-sur-Cher
+  #   coordinates: {lat: 47.3508945, lng: 0.8495564}
+  #   description: Lavoir Sainte-Tutrille
+  #   year: 1200
+
+  - id: "14"
+    name: Abbaye de Marmoutier
+    coordinates: {lat: 47.403056, lng: 0.717222}
+    description: "Ancienne abbatiale de Marmoutier : épouvantable vision"
+    year: 1200
+    wikidataUrl: https://www.wikidata.org/wiki/Q177050

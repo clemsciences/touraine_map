@@ -12,7 +12,8 @@
     "bootstrap": "^5.3.3",
     "bootstrap-vue-next": "^0.26.25",
     "leaflet.browser.print": "^2.0.2",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

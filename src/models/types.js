@@ -11,7 +11,7 @@ export class LocatedEvent {
    * @param {string} id - id
    * @param {Object} coordinates - The geographical coordinates of the city. An object containing latitude and longitude properties.
    * @param {string} description - A brief description of the city.
-   * @param {number} year - A year associated with the city.
+   * @param {number|null} year - A year associated with the city, or null if unknown.
    * @param {string} wikidataUrl - .
    */
   constructor(name, id, coordinates, description, year, wikidataUrl) {
